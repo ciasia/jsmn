@@ -445,25 +445,5 @@ define_function jsmn_init(jsmn_parser parser) {
 }
 
 
-/**
- * Tokenise a JSON string
- */
-define_function slong json_tokenise(char json[], jsmn_token tokens[]) {
-    stack_var jsmn_parser parser;
-
-    jsmn_init(parser);
-
-    return jsmn_parse(parser, json, tokens);
-}
-
-
-/**
- * Compare a string to a JSON token
- */
-define_function char json_token_str_eq(char json[], jsmn_token t, char s[]) {
-    return mid_string(json, t.start, t.end - t.start) == s;
-}
-
-
 #end_if
 
