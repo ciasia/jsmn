@@ -4,6 +4,7 @@ PROGRAM_NAME='jsmn'
 
 
 #define JSMN_STRICT
+#define JSMN_PARENT_LINKS
 
 
 DEFINE_CONSTANT
@@ -33,6 +34,9 @@ structure jsmn_token {
     integer start
     integer end
     integer size
+#if_defined JSMN_PARENT_LINKS
+    integer parent
+#end_if
 };
 
 structure jsmn_parser {
@@ -62,6 +66,9 @@ define_function integer jsmn_alloc_token(jsmn_parser parser, jsmn_token tokens[]
     tokens[idx].start = 0;
     tokens[idx].end = 0;
     tokens[idx].size = 0;
+#if_defined JSMN_PARENT_LINKS
+    tokens[idx].parent = 0;
+#end_if
 
     set_length_array(tokens, idx);
 
@@ -135,6 +142,9 @@ define_function sinteger jsmn_parse_primitive(jsmn_parser parser, char json[],
     }
 
     jsmn_fill_token(token_idx, tokens, JSMN_PRIMITIVE, start, parser.pos);
+#if_defined JSMN_PARENT_LINKS
+    tokens[token_idx].parent = parser.toksuper;
+#end_if
     parser.pos--;
     return 0;
 }
@@ -168,6 +178,9 @@ define_function sinteger jsmn_parse_string(jsmn_parser parser, char json[],
                 return JSMN_ERROR_NOMEM;
             }
             jsmn_fill_token(token_idx, tokens, JSMN_STRING, start+1, parser.pos);
+#if_defined JSMN_PARENT_LINKS
+            tokens[token_idx].parent = parser.toksuper;
+#end_if
             return 0;
         }
 
@@ -247,12 +260,15 @@ define_function slong jsmn_parse(jsmn_parser parser, char json[],
 
                 if (parser.toksuper) {
                     tokens[parser.toksuper].size++;
+#if_defined JSMN_PARENT_LINKS
+                    tokens[token_idx].parent = parser.toksuper;
+#end_if
                 }
 
                 if (c == '{') {
-                    tokens[token_idx].type = JSMN_OBJECT
+                    tokens[token_idx].type = JSMN_OBJECT;
                 } else {
-                    tokens[token_idx].type = JSMN_ARRAY
+                    tokens[token_idx].type = JSMN_ARRAY;
                 }
 
                 tokens[token_idx].start = parser.pos;
@@ -262,10 +278,35 @@ define_function slong jsmn_parse(jsmn_parser parser, char json[],
             case '}':
             case ']': {
                 if (c == '}') {
-                    type = JSMN_OBJECT
+                    type = JSMN_OBJECT;
                 } else {
-                    type = JSMN_ARRAY
+                    type = JSMN_ARRAY;
                 }
+
+#if_defined JSMN_PARENT_LINKS
+
+                if (parser.toknext <= 1) {
+                    return JSMN_ERROR_INVAL;
+                } else {
+                    stack_var integer t;
+                    t = parser.toknext - 1;
+                    for (;;) {
+                        if (tokens[t].start && !tokens[t].end) {
+                            if (tokens[t].type != type) {
+                                return JSMN_ERROR_INVAL;
+                            }
+                            tokens[t].end = parser.pos + 1;
+                            parser.toksuper = tokens[t].parent;
+                            break;
+                        }
+                        if (!tokens[t].parent) {
+                            break;
+                        }
+                        t = tokens[t].parent;
+                    }
+                }
+
+#else
 
                 for (i = parser.toknext - 1; i > 0; i--) {
                     if (tokens[i].start && !tokens[i].end) {
@@ -289,6 +330,9 @@ define_function slong jsmn_parse(jsmn_parser parser, char json[],
                         break;
                     }
                 }
+
+#end_if
+
             }
 
             case '"': {
@@ -316,6 +360,9 @@ define_function slong jsmn_parse(jsmn_parser parser, char json[],
             case ',': {
                 if (tokens[parser.toksuper].type != JSMN_ARRAY &&
                         tokens[parser.toksuper].type != JSMN_OBJECT) {
+#if_defined JSMN_PARENT_LINKS
+                    parser.toksuper = tokens[parser.toksuper].parent;
+#else
                     for (i = parser.toknext - 1; i > 0; i--) {
                         if (tokens[i].type == JSMN_ARRAY ||
                                 tokens[i].type == JSMN_OBJECT) {
@@ -325,6 +372,7 @@ define_function slong jsmn_parse(jsmn_parser parser, char json[],
                             }
                         }
                     }
+#end_if
                 }
             }
 
