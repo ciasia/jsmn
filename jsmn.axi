@@ -465,5 +465,5 @@ define_function char json_token_str_eq(char json[], jsmn_token t, char s[]) {
 }
 
 
-#end_if __JSMN_LIB_
+#end_if
 
