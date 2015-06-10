@@ -114,6 +114,7 @@ A non-negative reutrn value of `jsmn_parse` is the number of tokens actually
 used by the parser.
 
 If something goes wrong, you will get an error. Error will be one of these:
+
 * `JSMN_ERROR_INVAL` - bad token, JSON string is corrupted
 * `JSMN_ERROR_NOMEM` - not enough tokens, JSON string is too large
 * `JSMN_ERROR_PART` - JSON string is too short, expecting more JSON data
