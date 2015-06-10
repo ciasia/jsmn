@@ -124,6 +124,12 @@ If you get `JSON_ERROR_NOMEM`, you can re-allocate more tokens and call
 periodically call `jsmn_parse` and check if return value is `JSON_ERROR_PART`.
 You will get this error until you reach the end of JSON data.
 
+Two auxillary functions have also been provided to assist with common tasks:
+
+`json_tokenise(json, tokens)` which wraps initialising of the parser object and parsing into the supplied token array. Return values are as per `json_parse(..)` above.
+
+`json_token_str_eq(json, t, s)` for comparing the contained value of a token (`t`) to a string (`s`). Returns `true` if they are equivalent.
+
 Other info
 ----------
 
