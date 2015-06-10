@@ -91,19 +91,19 @@ define_function jsmn_fill_token(integer token_idx, jsmn_token tokens[],
 /**
  * Fills next available token with JSON primitive.
  */
-define_function sinteger jsmn_parse_primitive(jsmn_parser parser, char json[],
+define_function sinteger jsmn_parse_primitive(jsmn_parser parser, char js[],
         jsmn_token tokens[]) {
     stack_var integer len;
     stack_var integer token_idx;
     stack_var integer start;
     stack_var char found;
 
-    len = length_string(json);
+    len = length_string(js);
     start = parser.pos;
     found = false;
 
-    for (; parser.pos <= len && json[parser.pos] != JSMN_CHAR_NULL; parser.pos++) {
-        switch (json[parser.pos]) {
+    for (; parser.pos <= len && js[parser.pos] != JSMN_CHAR_NULL; parser.pos++) {
+        switch (js[parser.pos]) {
 #if_not_defined JSMN_STRICT
             case ':':
 #end_if
@@ -122,7 +122,7 @@ define_function sinteger jsmn_parse_primitive(jsmn_parser parser, char json[],
             break;
         }
 
-        if (json[parser.pos] < 32 || json[parser.pos] >= 127) {
+        if (js[parser.pos] < 32 || js[parser.pos] >= 127) {
             parser.pos = start;
             return JSMN_ERROR_INVAL;
         }
@@ -153,22 +153,22 @@ define_function sinteger jsmn_parse_primitive(jsmn_parser parser, char json[],
 /**
  * Fills the next token with JSON string.
  */
-define_function sinteger jsmn_parse_string(jsmn_parser parser, char json[],
+define_function sinteger jsmn_parse_string(jsmn_parser parser, char js[],
         jsmn_token tokens[]) {
     stack_var integer len;
     stack_var integer token_idx;
     stack_var integer start;
 
-    len = length_string(json);
+    len = length_string(js);
     start = parser.pos;
 
     // Skip starting quote
     parser.pos++;
 
-    for (; parser.pos <= len && json[parser.pos] != JSMN_CHAR_NULL; parser.pos++) {
+    for (; parser.pos <= len && js[parser.pos] != JSMN_CHAR_NULL; parser.pos++) {
         stack_var char c;
 
-        c = json[parser.pos];
+        c = js[parser.pos];
 
         // Quote: end of string
         if (c == '"') {
@@ -190,7 +190,7 @@ define_function sinteger jsmn_parse_string(jsmn_parser parser, char json[],
 
             parser.pos++;
 
-            switch (json[parser.pos]) {
+            switch (js[parser.pos]) {
                 case '"':
                 case '/':
                 case '\':
@@ -204,11 +204,11 @@ define_function sinteger jsmn_parse_string(jsmn_parser parser, char json[],
 
                 case 'u': {
                     parser.pos++;
-                    for(i = 0; i < 4 && parser.pos <= len && json[parser.pos] != JSMN_CHAR_NULL; i++) {
+                    for(i = 0; i < 4 && parser.pos <= len && js[parser.pos] != JSMN_CHAR_NULL; i++) {
                         // If it isn't a hex character we have an error
-                        if(!((json[parser.pos] >= '0' && json[parser.pos] <= '9') ||
-                                (json[parser.pos] >= 'A' && json[parser.pos] <= 'F') ||
-                                (json[parser.pos] >= 'a' && json[parser.pos] <= 'f'))) {
+                        if(!((js[parser.pos] >= '0' && js[parser.pos] <= '9') ||
+                                (js[parser.pos] >= 'A' && js[parser.pos] <= 'F') ||
+                                (js[parser.pos] >= 'a' && js[parser.pos] <= 'f'))) {
                             parser.pos = start;
                             return JSMN_ERROR_INVAL;
                         }
@@ -233,7 +233,7 @@ define_function sinteger jsmn_parse_string(jsmn_parser parser, char json[],
 /**
  * Parse JSON string and fill tokens.
  */
-define_function slong jsmn_parse(jsmn_parser parser, char json[],
+define_function slong jsmn_parse(jsmn_parser parser, char js[],
         jsmn_token tokens[]) {
     stack_var sinteger r;
     stack_var integer len;
@@ -241,14 +241,14 @@ define_function slong jsmn_parse(jsmn_parser parser, char json[],
     stack_var integer token_idx;
     stack_var integer count;
     
-    len = length_string(json);
+    len = length_string(js);
     count = 0;
 
-    for (; parser.pos <= len && json[parser.pos] != JSMN_CHAR_NULL; parser.pos++) {
+    for (; parser.pos <= len && js[parser.pos] != JSMN_CHAR_NULL; parser.pos++) {
         stack_var char c;
         stack_var integer type;
 
-        c = json[parser.pos];
+        c = js[parser.pos];
         switch (c) {
             case '{':   
             case '[': {
@@ -336,7 +336,7 @@ define_function slong jsmn_parse(jsmn_parser parser, char json[],
             }
 
             case '"': {
-                r = jsmn_parse_string(parser, json, tokens);
+                r = jsmn_parse_string(parser, js, tokens);
                 if (r < 0) {
                     return r;
                 }
@@ -402,7 +402,7 @@ define_function slong jsmn_parse(jsmn_parser parser, char json[],
             // In non-strict mode every unquoted value is a primitive
             default: {
 #end_if
-                r = jsmn_parse_primitive(parser, json, tokens);
+                r = jsmn_parse_primitive(parser, js, tokens);
                 if (r < 0){
                     return r;
                 }
