@@ -58,7 +58,7 @@ Install
 
 To clone the repository you should have git installed. Just run:
 
-    $ git clone https://bitbucket.org/KimBurgess/jsmn
+    $ git clone https://github.com/ciasia/jsmn
 
 Once you have a local copy, bring into your workspace and include where required. Multiple includes will be ignored.
 
